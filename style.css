@@ -1,1 +1,165 @@
-/* Add styles here */
+:root {
+    --primary-color: #5c6bc0;
+    --secondary-color: #f5f5f5;
+    --accent-color: #ffca28;
+    --text-color: #333;
+    --completed-color: #a5d6a7;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #e8eaf6;
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    max-width: 600px;
+    width: 100%;
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    text-align: center;
+    color: var(--primary-color);
+}
+
+section {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+}
+
+.alarm-control {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+input[type="time"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    padding: 8px 15px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+#alarmStatus {
+    text-align: center;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.setting-group {
+    margin: 15px 0;
+}
+
+.setting-group h3 {
+    font-size: 1em;
+    margin-bottom: 10px;
+    color: #555;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
+}
+
+.date-control {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+input[type="date"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.day-card {
+    padding: 15px;
+    background-color: var(--secondary-color);
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.3s;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 120px;
+}
+
+.day-card:hover {
+    transform: translateY(-2px);
+}
+
+.day-card.completed {
+    background-color: var(--completed-color);
+    border-color: #4caf50;
+}
+
+.day-card h3 {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.day-date {
+    font-size: 0.85em;
+    color: #666;
+    margin: 5px 0;
+}
+
+.day-mystery {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 10px 0;
+    font-size: 0.9em;
+}
+
+.day-card label {
+    cursor: pointer;
+    font-size: 0.8em;
+}
+
+.reset-btn {
+    display: block;
+    width: 100%;
+    background-color: #ef5350;
+    margin-top: 10px;
+}
+
+@media (max-width: 480px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
