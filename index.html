@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>9일 묵주기도 트래커</title>
+    <title>묵주기도달력</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>기도 트래커</h1>
+        <div class="auth-section">
+            <div id="userProfile" class="hidden">
+                <span id="userName"></span>님
+                <button id="logoutBtn" class="small-btn">로그아웃</button>
+            </div>
+            <button id="loginBtn" class="small-btn">구글 로그인</button>
+        </div>
+        <h1>묵주기도달력</h1>
         
         <section class="settings">
             <h2>기본 설정</h2>
@@ -17,6 +24,7 @@
                 <div class="alarm-control">
                     <input type="time" id="alarmTime">
                     <button id="setAlarm">알람 설정</button>
+                    <button id="clearAlarm" class="small-btn">알람 해제</button>
                     <button id="testNotification">알림 테스트</button>
                 </div>
                 <p id="alarmStatus">알람이 설정되지 않았습니다.</p>

@@ -25,9 +25,27 @@ body {
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-h1, h2 {
-    text-align: center;
-    color: var(--primary-color);
+.auth-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    align-items: center;
+    gap: 10px;
+}
+
+.small-btn {
+    padding: 5px 12px;
+    font-size: 0.85em;
+    background-color: var(--secondary-color);
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.small-btn:hover {
+    background-color: #e0e0e0;
 }
 
 section {

@@ -1,7 +1,12 @@
+// NOTE: Firebase SDK must be included in index.html for this to work.
+// Since we are in a simple static setup, we'll use the CDN version in index.html first.
+
 document.addEventListener('DOMContentLoaded', () => {
+    // UI Elements
     const daysGrid = document.getElementById('daysGrid');
     const alarmTimeInput = document.getElementById('alarmTime');
     const setAlarmBtn = document.getElementById('setAlarm');
+    const clearAlarmBtn = document.getElementById('clearAlarm');
     const alarmStatus = document.getElementById('alarmStatus');
     const testNotificationBtn = document.getElementById('testNotification');
     const resetProgressBtn = document.getElementById('resetProgress');
@@ -16,6 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const calendarGrid = document.getElementById('calendarGrid');
     const calendarMonth = document.getElementById('calendarMonth');
 
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userProfile = document.getElementById('userProfile');
+    const userNameDisplay = document.getElementById('userName');
+
     // Mysteries Rotation
     const mysteries = ['환희의 신비', '빛의 신비', '고통의 신비', '영광의 신비'];
 
@@ -25,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let startDate = localStorage.getItem('startDate') || "";
     let prayerDuration = parseInt(localStorage.getItem('prayerDuration')) || 9;
     let currentView = localStorage.getItem('currentView') || 'list';
+    let currentUser = null;
 
     // Initialize UI
     alarmTimeInput.value = alarmTime;
@@ -33,6 +44,55 @@ document.addEventListener('DOMContentLoaded', () => {
     
     updateView();
     updateAlarmStatus();
+
+    // Mock Firebase Auth (Since we can't fully configure Firebase without keys)
+    // In a real app, you'd use firebase.auth() and firebase.firestore()
+    
+    loginBtn.addEventListener('click', () => {
+        alert("구글 로그인 기능은 Firebase 설정(API Key 등)이 필요합니다.\n현재는 데모 모드로 전환됩니다.");
+        loginAsDemo();
+    });
+
+    logoutBtn.addEventListener('click', () => {
+        currentUser = null;
+        userProfile.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
+        loadLocalData();
+        updateView();
+    });
+
+    function loginAsDemo() {
+        currentUser = { uid: "demo123", displayName: "사용자" };
+        userNameDisplay.innerText = currentUser.displayName;
+        userProfile.classList.remove('hidden');
+        loginBtn.classList.add('hidden');
+        // In real app: fetch from Firestore
+        syncWithCloud();
+    }
+
+    function syncWithCloud() {
+        if (!currentUser) return;
+        // Mocking cloud sync
+        console.log("Syncing with cloud for user:", currentUser.uid);
+        saveToLocalStorage(); // Keep local in sync
+    }
+
+    function loadLocalData() {
+        completedDays = JSON.parse(localStorage.getItem('completedDays')) || [];
+        startDate = localStorage.getItem('startDate') || "";
+        prayerDuration = parseInt(localStorage.getItem('prayerDuration')) || 9;
+        
+        startDateInput.value = startDate;
+        prayerDurationInput.value = prayerDuration;
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('completedDays', JSON.stringify(completedDays));
+        localStorage.setItem('startDate', startDate);
+        localStorage.setItem('prayerDuration', prayerDuration);
+        localStorage.setItem('currentView', currentView);
+        localStorage.setItem('alarmTime', alarmTime);
+    }
 
     function updateView() {
         if (currentView === 'list') {
@@ -120,11 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         calendarMonth.innerText = `${startYear}년 ${startMonth + 1}월`;
 
-        // Get first day of the month
         const firstDayOfMonth = new Date(startYear, startMonth, 1).getDay();
         const daysInMonth = new Date(startYear, startMonth + 1, 0).getDate();
 
-        // Fill empty days before start of month
         for (let i = 0; i < firstDayOfMonth; i++) {
             const emptyDay = document.createElement('div');
             emptyDay.className = 'calendar-day';
@@ -134,13 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Fill calendar with days
         for (let d = 1; d <= daysInMonth; d++) {
             const currentDayDate = new Date(startYear, startMonth, d);
             const dayElem = document.createElement('div');
             dayElem.className = 'calendar-day';
             
-            // Check if this date is part of the prayer schedule
             if (startDate) {
                 const startD = new Date(startDate);
                 startD.setHours(0,0,0,0);
@@ -174,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     dayElem.addEventListener('click', () => {
                         const isCompleted = completedDays.includes(prayerDayNum);
                         toggleDay(prayerDayNum, !isCompleted);
-                        renderCalendar();
                     });
                 } else {
                     dayElem.innerHTML = `<span class="date-num">${d}</span>`;
@@ -193,7 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             completedDays = completedDays.filter(d => d !== day);
         }
-        localStorage.setItem('completedDays', JSON.stringify(completedDays));
+        saveToLocalStorage();
+        syncWithCloud();
         if (currentView === 'list') renderGrid();
         else renderCalendar();
     }
@@ -201,13 +257,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // View Switching
     listViewBtn.addEventListener('click', () => {
         currentView = 'list';
-        localStorage.setItem('currentView', 'list');
+        saveToLocalStorage();
         updateView();
     });
 
     calendarViewBtn.addEventListener('click', () => {
         currentView = 'calendar';
-        localStorage.setItem('currentView', 'calendar');
+        saveToLocalStorage();
         updateView();
     });
 
@@ -215,22 +271,29 @@ document.addEventListener('DOMContentLoaded', () => {
     setAlarmBtn.addEventListener('click', () => {
         alarmTime = alarmTimeInput.value;
         if (!alarmTime) {
-            alert("알람 시간을 선택해주세요.");
+            alert("알람 시간을 선택해주세요. 알람을 원하지 않으시면 '알람 해제'를 눌러주세요.");
             return;
         }
-        localStorage.setItem('alarmTime', alarmTime);
+        saveToLocalStorage();
         updateAlarmStatus();
         requestNotificationPermission();
         alert(`매일 ${alarmTime}분에 알람이 설정되었습니다.`);
+    });
+
+    clearAlarmBtn.addEventListener('click', () => {
+        alarmTime = "";
+        alarmTimeInput.value = "";
+        saveToLocalStorage();
+        updateAlarmStatus();
+        alert("알람이 해제되었습니다.");
     });
 
     setSettingsBtn.addEventListener('click', () => {
         startDate = startDateInput.value;
         prayerDuration = parseInt(prayerDurationInput.value) || 9;
         
-        localStorage.setItem('startDate', startDate);
-        localStorage.setItem('prayerDuration', prayerDuration);
-        
+        saveToLocalStorage();
+        syncWithCloud();
         updateView();
         alert("설정이 저장되었습니다.");
     });
@@ -266,9 +329,8 @@ document.addEventListener('DOMContentLoaded', () => {
             completedDays = [];
             startDate = "";
             prayerDuration = 9;
-            localStorage.removeItem('completedDays');
-            localStorage.removeItem('startDate');
-            localStorage.removeItem('prayerDuration');
+            saveToLocalStorage();
+            syncWithCloud();
             startDateInput.value = "";
             prayerDurationInput.value = 9;
             updateView();
