@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logoutBtn');
     const userProfile = document.getElementById('userProfile');
     const userNameDisplay = document.getElementById('userName');
+    const userSuffix = document.getElementById('userSuffix');
+
+    const langKoBtn = document.getElementById('langKo');
+    const langEnBtn = document.getElementById('langEn');
 
     // Intention UI
     const intentionInputArea = document.getElementById('intentionInputArea');
@@ -32,19 +36,82 @@ document.addEventListener('DOMContentLoaded', () => {
     const editIntentionBtn = document.getElementById('editIntention');
     const intentionBackground = document.getElementById('intentionBackground');
 
-    // Mysteries Rotation
-    const mysteries = ['환희의 신비', '빛의 신비', '고통의 신비', '영광의 신비'];
-
-    // Background Images Mapping
-    const bgImages = {
-        '가족': 'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80',
-        '평화': 'https://images.unsplash.com/photo-1499209974431-9dac3adaf471?auto=format&fit=crop&w=800&q=80',
-        '감사': 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&w=800&q=80',
-        '건강': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
-        'default': 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80'
+    // Translations
+    const translations = {
+        ko: {
+            title: "묵주기도달력",
+            login: "구글 로그인",
+            logout: "로그아웃",
+            userSuffix: "님",
+            intentionTitle: "기도 목적",
+            intentionPlaceholder: "이 기도를 바치는 목적을 작성해주세요... (예: 가족의 건강, 평화, 감사의 기도 등)",
+            saveIntention: "목적 설정",
+            edit: "수정",
+            settingsTitle: "기본 설정",
+            durationLabel: "기도 기간(일): ",
+            saveSettings: "설정 저장",
+            alarmTitle: "알람 설정",
+            setAlarm: "알람 설정",
+            clearAlarm: "알람 해제",
+            testAlarm: "알림 테스트",
+            alarmUnset: "알람이 설정되지 않았습니다.",
+            alarmSet: "알람이 {}로 설정되었습니다.",
+            listTitle: "기도 일정",
+            listView: "목록 보기",
+            calendarView: "달력 보기",
+            resetProgress: "진행 상황 초기화",
+            resetConfirm: "정말로 모든 진행 상황을 초기화하시겠습니까?",
+            dayTitle: "{}일차",
+            mysteryTitle: "신비",
+            completed: "기도 완료",
+            notSet: "날짜 미설정",
+            overdue: "(미완료)",
+            futureAlert: "미래의 기도는 미리 완료할 수 없습니다.",
+            intentionAlert: "기도 목적을 입력해주세요.",
+            firebaseAlert: "구글 로그인 기능은 Firebase 설정(API Key 등)이 필요합니다.\n현재는 데모 모드로 전환됩니다.",
+            mysteries: ['환희의 신비', '빛의 신비', '고통의 신비', '영광의 신비'],
+            weekdays: ['일', '월', '화', '수', '목', '금', '토'],
+            monthFormat: "{}년 {}월"
+        },
+        en: {
+            title: "Rosary Calendar",
+            login: "Google Login",
+            logout: "Logout",
+            userSuffix: "",
+            intentionTitle: "Prayer Intention",
+            intentionPlaceholder: "Write your intention for this prayer... (e.g., family health, peace, gratitude, etc.)",
+            saveIntention: "Set Intention",
+            edit: "Edit",
+            settingsTitle: "Basic Settings",
+            durationLabel: "Duration (days): ",
+            saveSettings: "Save Settings",
+            alarmTitle: "Alarm Settings",
+            setAlarm: "Set Alarm",
+            clearAlarm: "Clear Alarm",
+            testAlarm: "Test Notification",
+            alarmUnset: "Alarm is not set.",
+            alarmSet: "Alarm set for {}.",
+            listTitle: "Prayer Schedule",
+            listView: "List View",
+            calendarView: "Calendar View",
+            resetProgress: "Reset Progress",
+            resetConfirm: "Are you sure you want to reset all progress?",
+            dayTitle: "Day {}",
+            mysteryTitle: "Mystery",
+            completed: "Completed",
+            notSet: "Date not set",
+            overdue: "(Overdue)",
+            futureAlert: "You cannot complete future prayers in advance.",
+            intentionAlert: "Please enter your prayer intention.",
+            firebaseAlert: "Google Login requires Firebase configuration (API Keys, etc.).\nSwitching to demo mode.",
+            mysteries: ['Joyful Mysteries', 'Luminous Mysteries', 'Sorrowful Mysteries', 'Glorious Mysteries'],
+            weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            monthFormat: "{} / {}"
+        }
     };
 
     // State
+    let currentLang = localStorage.getItem('currentLang') || 'ko';
     let completedDays = JSON.parse(localStorage.getItem('completedDays')) || [];
     let alarmTime = localStorage.getItem('alarmTime') || "";
     let startDate = localStorage.getItem('startDate') || "";
@@ -58,9 +125,96 @@ document.addEventListener('DOMContentLoaded', () => {
     startDateInput.value = startDate;
     prayerDurationInput.value = prayerDuration;
     
+    applyLanguage();
     updateIntentionUI();
     updateView();
     updateAlarmStatus();
+
+    // Language Events
+    langKoBtn.addEventListener('click', () => {
+        currentLang = 'ko';
+        localStorage.setItem('currentLang', currentLang);
+        applyLanguage();
+        renderCurrentView();
+    });
+
+    langEnBtn.addEventListener('click', () => {
+        currentLang = 'en';
+        localStorage.setItem('currentLang', currentLang);
+        applyLanguage();
+        renderCurrentView();
+    });
+
+    function applyLanguage() {
+        const t = translations[currentLang];
+        document.title = t.title;
+        document.querySelector('h1').innerText = t.title;
+        loginBtn.innerText = t.login;
+        logoutBtn.innerText = t.logout;
+        userSuffix.innerText = t.userSuffix;
+
+        document.querySelector('#intentionSection h2').innerText = t.intentionTitle;
+        intentionInput.placeholder = t.intentionPlaceholder;
+        saveIntentionBtn.innerText = t.saveIntention;
+        editIntentionBtn.innerText = t.edit;
+
+        document.querySelector('.settings h2').innerText = t.settingsTitle;
+        document.querySelector('label[for="prayerDuration"]').innerText = t.durationLabel;
+        document.querySelector('.settings h3:nth-of-type(1)').innerText = t.settingsTitle; // Using nth-of-type might be brittle, but for now
+        setSettingsBtn.innerText = t.saveSettings;
+        
+        // Settings headings
+        const settingHeadings = document.querySelectorAll('.setting-group h3');
+        if (settingHeadings.length >= 1) settingHeadings[0].innerText = t.settingsTitle; // This is actually "Duration and Start Date" in original
+        // Let's be more specific
+        settingHeadings[0].innerText = currentLang === 'ko' ? "기도 기간 및 시작 날짜" : "Duration & Start Date";
+        if (settingHeadings.length >= 2) settingHeadings[1].innerText = t.alarmTitle;
+
+        setAlarmBtn.innerText = t.setAlarm;
+        clearAlarmBtn.innerText = t.clearAlarm;
+        testNotificationBtn.innerText = t.testAlarm;
+        
+        document.getElementById('listTitle').innerText = t.listTitle;
+        listViewBtn.innerText = t.listView;
+        calendarViewBtn.innerText = t.calendarView;
+        resetProgressBtn.innerText = t.resetProgress;
+
+        // Calendar weekdays
+        const calendarWeekdaysHeader = document.querySelector('.calendar-days-header');
+        if (calendarWeekdaysHeader) {
+            calendarWeekdaysHeader.innerHTML = t.weekdays.map(w => `<span>${w}</span>`).join('');
+        }
+
+        // Active state for lang buttons
+        langKoBtn.classList.toggle('active', currentLang === 'ko');
+        langEnBtn.classList.toggle('active', currentLang === 'en');
+
+        updateAlarmStatus();
+    }
+
+    function renderCurrentView() {
+        if (currentView === 'list') {
+            renderGrid();
+        } else {
+            renderCalendar();
+        }
+    }
+
+    // Mysteries Rotation
+    const mysteries = () => translations[currentLang].mysteries;
+
+    // Background Images Mapping
+    const bgImages = {
+        '가족': 'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80',
+        'family': 'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80',
+        '평화': 'https://images.unsplash.com/photo-1499209974431-9dac3adaf471?auto=format&fit=crop&w=800&q=80',
+        'peace': 'https://images.unsplash.com/photo-1499209974431-9dac3adaf471?auto=format&fit=crop&w=800&q=80',
+        '감사': 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&w=800&q=80',
+        'thanks': 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&w=800&q=80',
+        '건강': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
+        'health': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
+        'default': 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80'
+    };
 
     // Intention Events
     saveIntentionBtn.addEventListener('click', () => {
@@ -70,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateIntentionUI();
             syncWithCloud();
         } else {
-            alert("기도 목적을 입력해주세요.");
+            alert(translations[currentLang].intentionAlert);
         }
     });
 
@@ -95,8 +249,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateIntentionBackground() {
         let selectedBg = bgImages.default;
+        const lowerIntention = prayerIntention.toLowerCase();
         for (const [keyword, url] of Object.entries(bgImages)) {
-            if (prayerIntention.includes(keyword)) {
+            if (lowerIntention.includes(keyword)) {
                 selectedBg = url;
                 break;
             }
@@ -104,9 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
         intentionBackground.style.backgroundImage = `url('${selectedBg}')`;
     }
 
-    // Mock Firebase Auth (Since we can't fully configure Firebase without keys)
+    // Mock Firebase Auth
     loginBtn.addEventListener('click', () => {
-        alert("구글 로그인 기능은 Firebase 설정(API Key 등)이 필요합니다.\n현재는 데모 모드로 전환됩니다.");
+        alert(translations[currentLang].firebaseAlert);
         loginAsDemo();
     });
 
@@ -120,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function loginAsDemo() {
-        currentUser = { uid: "demo123", displayName: "사용자" };
+        currentUser = { uid: "demo123", displayName: currentLang === 'ko' ? "사용자" : "User" };
         userNameDisplay.innerText = currentUser.displayName;
         userProfile.classList.remove('hidden');
         loginBtn.classList.add('hidden');
@@ -129,7 +284,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncWithCloud() {
         if (!currentUser) return;
-        console.log("Syncing with cloud for user:", currentUser.uid);
         saveToLocalStorage(); 
     }
 
@@ -168,8 +322,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Views Events
+    listViewBtn.addEventListener('click', () => {
+        currentView = 'list';
+        localStorage.setItem('currentView', currentView);
+        updateView();
+    });
+
+    calendarViewBtn.addEventListener('click', () => {
+        currentView = 'calendar';
+        localStorage.setItem('currentView', currentView);
+        updateView();
+    });
+
     // Render List View
     function renderGrid() {
+        const t = translations[currentLang];
         daysGrid.innerHTML = '';
         const start = startDate ? new Date(startDate) : null;
         const today = new Date();
@@ -181,13 +349,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let isOverdue = false;
             let isFuture = false;
-            let dateStr = "날짜 미설정";
+            let dateStr = t.notSet;
             if (start) {
                 const currentDayDate = new Date(start);
                 currentDayDate.setDate(start.getDate() + (i - 1));
                 currentDayDate.setHours(0, 0, 0, 0);
                 
-                dateStr = currentDayDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+                dateStr = currentDayDate.toLocaleDateString(currentLang === 'ko' ? 'ko-KR' : 'en-US', { month: 'long', day: 'numeric', weekday: 'short' });
                 
                 if (currentDayDate < today && !completedDays.includes(i)) {
                     isOverdue = true;
@@ -202,17 +370,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayCard.classList.add('overdue');
             }
             
-            const mystery = mysteries[(i - 1) % 4];
+            const mystery = t.mysteries[(i - 1) % 4];
 
             dayCard.innerHTML = `
                 <div>
-                    <h3>${i}일차</h3>
-                    <p class="day-date">${dateStr}${isOverdue ? ' <span class="overdue-label">(미완료)</span>' : ''}</p>
+                    <h3>${t.dayTitle.replace('{}', i)}</h3>
+                    <p class="day-date">${dateStr}${isOverdue ? ` <span class="overdue-label">${t.overdue}</span>` : ''}</p>
                 </div>
                 <p class="day-mystery">${mystery}</p>
                 <div>
                     <input type="checkbox" id="day${i}" ${completedDays.includes(i) ? 'checked' : ''} ${isFuture && !completedDays.includes(i) ? 'disabled' : ''}>
-                    <label for="day${i}">기도 완료</label>
+                    <label for="day${i}">${t.completed}</label>
                 </div>
             `;
             
@@ -220,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
                     const checkbox = dayCard.querySelector('input');
                     if (checkbox.disabled) {
-                        alert("미래의 기도는 미리 완료할 수 없습니다.");
+                        alert(t.futureAlert);
                         return;
                     }
                     checkbox.checked = !checkbox.checked;
@@ -230,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             dayCard.querySelector('input').addEventListener('change', (e) => {
                 if (e.target.checked && isFuture) {
-                    alert("미래의 기도는 미리 완료할 수 없습니다.");
+                    alert(t.futureAlert);
                     e.target.checked = false;
                     return;
                 }
@@ -243,12 +411,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Render Calendar View
     function renderCalendar() {
+        const t = translations[currentLang];
         calendarGrid.innerHTML = '';
         const start = startDate ? new Date(startDate) : new Date();
         const startYear = start.getFullYear();
         const startMonth = start.getMonth();
         
-        calendarMonth.innerText = `${startYear}년 ${startMonth + 1}월`;
+        calendarMonth.innerText = t.monthFormat.replace('{}', startYear).replace('{}', startMonth + 1);
 
         const firstDayOfMonth = new Date(startYear, startMonth, 1).getDay();
         const daysInMonth = new Date(startYear, startMonth + 1, 0).getDate();
@@ -288,20 +457,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         dayElem.classList.add('completed');
                     } else if (isOverdue) {
                         dayElem.classList.add('overdue');
+                        dayElem.innerHTML += `<span class="overdue-dot">!</span>`;
                     }
                     
-                    const mystery = mysteries[(prayerDayNum - 1) % 4];
-                    dayElem.innerHTML = `
+                    const mystery = t.mysteries[(prayerDayNum - 1) % 4];
+                    dayElem.innerHTML += `
                         <span class="date-num">${d}</span>
-                        <span class="day-num-tag">${prayerDayNum}일차</span>
+                        <span class="day-num-tag">${prayerDayNum}</span>
                         <div class="prayer-info">${mystery}</div>
-                        ${isOverdue ? '<div class="overdue-dot">!</div>' : ''}
                     `;
                     
                     dayElem.addEventListener('click', () => {
                         const isCompletedNow = completedDays.includes(prayerDayNum);
                         if (!isCompletedNow && isFuture) {
-                            alert("미래의 기도는 미리 완료할 수 없습니다.");
+                            alert(t.futureAlert);
                             return;
                         }
                         toggleDay(prayerDayNum, !isCompletedNow);
@@ -313,11 +482,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayElem.innerHTML = `<span class="date-num">${d}</span>`;
             }
             
+            if (currentDayDate.getTime() === today.getTime()) {
+                dayElem.style.border = '2px solid var(--accent-color)';
+            }
+            
             calendarGrid.appendChild(dayElem);
         }
     }
 
     function toggleDay(day, isCompleted) {
+        const t = translations[currentLang];
         if (isCompleted) {
             // Safety check for future dates
             if (startDate) {
@@ -328,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 if (targetDate > today) {
-                    alert("미래의 기도는 미리 완료할 수 없습니다.");
+                    alert(t.futureAlert);
                     return;
                 }
             }
@@ -338,82 +512,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveToLocalStorage();
         syncWithCloud();
-        if (currentView === 'list') renderGrid();
-        else renderCalendar();
+        renderCurrentView();
     }
 
-    // View Switching
-    listViewBtn.addEventListener('click', () => {
-        currentView = 'list';
-        saveToLocalStorage();
-        updateView();
+    // Settings Events
+    setSettingsBtn.addEventListener('click', () => {
+        startDate = startDateInput.value;
+        prayerDuration = parseInt(prayerDurationInput.value);
+        if (startDate && prayerDuration > 0) {
+            saveToLocalStorage();
+            syncWithCloud();
+            renderCurrentView();
+        }
     });
 
-    calendarViewBtn.addEventListener('click', () => {
-        currentView = 'calendar';
-        saveToLocalStorage();
-        updateView();
-    });
-
-    // Settings Logic
+    // Alarm Events
     setAlarmBtn.addEventListener('click', () => {
         alarmTime = alarmTimeInput.value;
-        if (!alarmTime) {
-            alert("알람 시간을 선택해주세요. 알람을 원하지 않으시면 '알람 해제'를 눌러주세요.");
-            return;
+        if (alarmTime) {
+            localStorage.setItem('alarmTime', alarmTime);
+            updateAlarmStatus();
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
         }
-        saveToLocalStorage();
-        updateAlarmStatus();
-        requestNotificationPermission();
-        alert(`매일 ${alarmTime}분에 알람이 설정되었습니다.`);
     });
 
     clearAlarmBtn.addEventListener('click', () => {
         alarmTime = "";
+        localStorage.removeItem('alarmTime');
         alarmTimeInput.value = "";
-        saveToLocalStorage();
         updateAlarmStatus();
-        alert("알람이 해제되었습니다.");
     });
-
-    setSettingsBtn.addEventListener('click', () => {
-        startDate = startDateInput.value;
-        prayerDuration = parseInt(prayerDurationInput.value) || 9;
-        
-        saveToLocalStorage();
-        syncWithCloud();
-        updateView();
-        alert("설정이 저장되었습니다.");
-    });
-
-    function updateAlarmStatus() {
-        if (alarmTime) {
-            alarmStatus.innerText = `매일 ${alarmTime}에 알람이 울립니다.`;
-        } else {
-            alarmStatus.innerText = "알람이 설정되지 않았습니다.";
-        }
-    }
-
-    function requestNotificationPermission() {
-        if (!("Notification" in window)) return;
-        if (Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
-    }
 
     testNotificationBtn.addEventListener('click', () => {
         if (Notification.permission === "granted") {
-            new Notification("묵주기도 알림 테스트", {
-                body: "묵주기도를 바칠 시간입니다!",
-                icon: "https://cdn-icons-png.flaticon.com/512/2913/2913451.png"
+            new Notification(translations[currentLang].title, {
+                body: "알림 테스트입니다.",
+                icon: "/favicon.ico"
             });
         } else {
-            requestNotificationPermission();
+            Notification.requestPermission();
         }
     });
 
+    function updateAlarmStatus() {
+        const t = translations[currentLang];
+        if (alarmTime) {
+            alarmStatus.innerText = t.alarmSet.replace('{}', alarmTime);
+        } else {
+            alarmStatus.innerText = t.alarmUnset;
+        }
+    }
+
     resetProgressBtn.addEventListener('click', () => {
-        if (confirm("모든 진행 상황을 초기화할까요?")) {
+        if (confirm(translations[currentLang].resetConfirm)) {
             completedDays = [];
             startDate = "";
             prayerDuration = 9;
@@ -427,20 +580,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Simple Alarm Check
     setInterval(() => {
         if (!alarmTime) return;
+        
         const now = new Date();
         const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        if (currentTime === alarmTime) {
-            if (Notification.permission === "granted" && !window.lastNotifiedMinute) {
-                new Notification("묵주기도 시간", {
-                    body: "오늘의 묵주기도를 바칠 시간입니다.",
-                    icon: "https://cdn-icons-png.flaticon.com/512/2913/2913451.png"
+        
+        if (currentTime === alarmTime && now.getSeconds() === 0) {
+            if (Notification.permission === "granted") {
+                new Notification(translations[currentLang].title, {
+                    body: translations[currentLang].completed + "?",
+                    icon: "/favicon.ico"
                 });
-                window.lastNotifiedMinute = currentTime;
             }
-        } else {
-            window.lastNotifiedMinute = null;
         }
-    }, 30000);
+    }, 1000);
 });

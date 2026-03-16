@@ -24,11 +24,38 @@ body {
     border-radius: 15px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
-
 .auth-section {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
+}
+
+.lang-switcher {
+    display: flex;
+    gap: 5px;
+}
+
+.lang-btn {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lang-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.lang-btn:hover:not(.active) {
+    background: #e0e0e0;
+}
+
     font-size: 0.9em;
     align-items: center;
     gap: 10px;

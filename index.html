@@ -9,8 +9,12 @@
 <body>
     <div class="container">
         <div class="auth-section">
+            <div class="lang-switcher">
+                <button id="langKo" class="lang-btn active">KO</button>
+                <button id="langEn" class="lang-btn">EN</button>
+            </div>
             <div id="userProfile" class="hidden">
-                <span id="userName"></span>님
+                <span id="userName"></span><span id="userSuffix">님</span>
                 <button id="logoutBtn" class="small-btn">로그아웃</button>
             </div>
             <button id="loginBtn" class="small-btn">구글 로그인</button>
