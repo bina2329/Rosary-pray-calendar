@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveIntentionBtn = document.getElementById('saveIntention');
     const editIntentionBtn = document.getElementById('editIntention');
     const intentionBackground = document.getElementById('intentionBackground');
+    const bgUploadInput = document.getElementById('bgUpload');
+    const resetBgBtn = document.getElementById('resetBg');
+    const uploadText = document.getElementById('uploadText');
 
     // Translations
     const translations = {
@@ -47,6 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
             intentionPlaceholder: "이 기도를 바치는 목적을 작성해주세요... (예: 가족의 건강, 평화, 감사의 기도 등)",
             saveIntention: "목적 설정",
             edit: "수정",
+            resetBg: "배경 초기화",
+            uploadBg: "배경 사진 업로드",
             settingsTitle: "기본 설정",
             durationLabel: "기도 기간(일): ",
             saveSettings: "설정 저장",
@@ -82,6 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
             intentionPlaceholder: "Write your intention for this prayer... (e.g., family health, peace, gratitude, etc.)",
             saveIntention: "Set Intention",
             edit: "Edit",
+            resetBg: "Reset Background",
+            uploadBg: "Upload Background",
             settingsTitle: "Basic Settings",
             durationLabel: "Duration (days): ",
             saveSettings: "Save Settings",
@@ -118,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let prayerDuration = parseInt(localStorage.getItem('prayerDuration')) || 9;
     let currentView = localStorage.getItem('currentView') || 'list';
     let prayerIntention = localStorage.getItem('prayerIntention') || "";
+    let customBgImage = localStorage.getItem('customBgImage') || "";
     let currentUser = null;
 
     // Initialize UI
@@ -153,22 +161,23 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.innerText = t.logout;
         userSuffix.innerText = t.userSuffix;
 
-        document.querySelector('#intentionSection h2').innerText = t.intentionTitle;
+        document.getElementById('intentionTitleText').innerText = t.intentionTitle;
         intentionInput.placeholder = t.intentionPlaceholder;
         saveIntentionBtn.innerText = t.saveIntention;
         editIntentionBtn.innerText = t.edit;
+        resetBgBtn.innerText = t.resetBg;
+        uploadText.innerText = t.uploadBg;
 
         document.querySelector('.settings h2').innerText = t.settingsTitle;
         document.querySelector('label[for="prayerDuration"]').innerText = t.durationLabel;
-        document.querySelector('.settings h3:nth-of-type(1)').innerText = t.settingsTitle; // Using nth-of-type might be brittle, but for now
-        setSettingsBtn.innerText = t.saveSettings;
         
-        // Settings headings
         const settingHeadings = document.querySelectorAll('.setting-group h3');
-        if (settingHeadings.length >= 1) settingHeadings[0].innerText = t.settingsTitle; // This is actually "Duration and Start Date" in original
-        // Let's be more specific
-        settingHeadings[0].innerText = currentLang === 'ko' ? "기도 기간 및 시작 날짜" : "Duration & Start Date";
-        if (settingHeadings.length >= 2) settingHeadings[1].innerText = t.alarmTitle;
+        if (settingHeadings.length >= 1) {
+            settingHeadings[0].innerText = currentLang === 'ko' ? "기도 기간 및 시작 날짜" : "Duration & Start Date";
+        }
+        if (settingHeadings.length >= 2) {
+            settingHeadings[1].innerText = t.alarmTitle;
+        }
 
         setAlarmBtn.innerText = t.setAlarm;
         clearAlarmBtn.innerText = t.clearAlarm;
@@ -179,13 +188,11 @@ document.addEventListener('DOMContentLoaded', () => {
         calendarViewBtn.innerText = t.calendarView;
         resetProgressBtn.innerText = t.resetProgress;
 
-        // Calendar weekdays
         const calendarWeekdaysHeader = document.querySelector('.calendar-days-header');
         if (calendarWeekdaysHeader) {
             calendarWeekdaysHeader.innerHTML = t.weekdays.map(w => `<span>${w}</span>`).join('');
         }
 
-        // Active state for lang buttons
         langKoBtn.classList.toggle('active', currentLang === 'ko');
         langEnBtn.classList.toggle('active', currentLang === 'en');
 
@@ -199,9 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
             renderCalendar();
         }
     }
-
-    // Mysteries Rotation
-    const mysteries = () => translations[currentLang].mysteries;
 
     // Background Images Mapping
     const bgImages = {
@@ -234,6 +238,25 @@ document.addEventListener('DOMContentLoaded', () => {
         intentionInput.value = prayerIntention;
     });
 
+    bgUploadInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                customBgImage = event.target.result;
+                localStorage.setItem('customBgImage', customBgImage);
+                updateIntentionBackground();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    resetBgBtn.addEventListener('click', () => {
+        customBgImage = "";
+        localStorage.removeItem('customBgImage');
+        updateIntentionBackground();
+    });
+
     function updateIntentionUI() {
         if (prayerIntention) {
             currentIntentionText.innerText = prayerIntention;
@@ -243,17 +266,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             intentionDisplay.classList.add('hidden');
             intentionInputArea.classList.remove('hidden');
-            intentionBackground.style.backgroundImage = `url('${bgImages.default}')`;
+            updateIntentionBackground();
         }
     }
 
     function updateIntentionBackground() {
+        if (customBgImage) {
+            intentionBackground.style.backgroundImage = `url('${customBgImage}')`;
+            return;
+        }
+
         let selectedBg = bgImages.default;
-        const lowerIntention = prayerIntention.toLowerCase();
-        for (const [keyword, url] of Object.entries(bgImages)) {
-            if (lowerIntention.includes(keyword)) {
-                selectedBg = url;
-                break;
+        if (prayerIntention) {
+            const lowerIntention = prayerIntention.toLowerCase();
+            for (const [keyword, url] of Object.entries(bgImages)) {
+                if (lowerIntention.includes(keyword)) {
+                    selectedBg = url;
+                    break;
+                }
             }
         }
         intentionBackground.style.backgroundImage = `url('${selectedBg}')`;
@@ -292,6 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startDate = localStorage.getItem('startDate') || "";
         prayerDuration = parseInt(localStorage.getItem('prayerDuration')) || 9;
         prayerIntention = localStorage.getItem('prayerIntention') || "";
+        customBgImage = localStorage.getItem('customBgImage') || "";
         
         startDateInput.value = startDate;
         prayerDurationInput.value = prayerDuration;
@@ -304,6 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('currentView', currentView);
         localStorage.setItem('alarmTime', alarmTime);
         localStorage.setItem('prayerIntention', prayerIntention);
+        localStorage.setItem('customBgImage', customBgImage);
     }
 
     function updateView() {
@@ -322,7 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Views Events
     listViewBtn.addEventListener('click', () => {
         currentView = 'list';
         localStorage.setItem('currentView', currentView);
@@ -335,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateView();
     });
 
-    // Render List View
     function renderGrid() {
         const t = translations[currentLang];
         daysGrid.innerHTML = '';
@@ -409,7 +439,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Render Calendar View
     function renderCalendar() {
         const t = translations[currentLang];
         calendarGrid.innerHTML = '';
@@ -493,7 +522,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleDay(day, isCompleted) {
         const t = translations[currentLang];
         if (isCompleted) {
-            // Safety check for future dates
             if (startDate) {
                 const start = new Date(startDate);
                 const targetDate = new Date(start);
@@ -515,7 +543,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCurrentView();
     }
 
-    // Settings Events
     setSettingsBtn.addEventListener('click', () => {
         startDate = startDateInput.value;
         prayerDuration = parseInt(prayerDurationInput.value);
@@ -526,7 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Alarm Events
     setAlarmBtn.addEventListener('click', () => {
         alarmTime = alarmTimeInput.value;
         if (alarmTime) {
@@ -571,6 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startDate = "";
             prayerDuration = 9;
             prayerIntention = "";
+            customBgImage = "";
             saveToLocalStorage();
             syncWithCloud();
             startDateInput.value = "";
@@ -580,13 +607,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Simple Alarm Check
     setInterval(() => {
         if (!alarmTime) return;
-        
         const now = new Date();
         const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        
         if (currentTime === alarmTime && now.getSeconds() === 0) {
             if (Notification.permission === "granted") {
                 new Notification(translations[currentLang].title, {

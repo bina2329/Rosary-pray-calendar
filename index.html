@@ -22,16 +22,25 @@
         <h1>묵주기도달력</h1>
         
         <section class="prayer-intention" id="intentionSection">
-            <h2>기도 목적</h2>
+            <h2 id="intentionTitleText">기도 목적</h2>
             <div class="intention-container">
                 <div id="intentionDisplay" class="hidden">
                     <p id="currentIntention"></p>
                     <p id="prayerSummary" class="prayer-summary"></p>
-                    <button id="editIntention" class="small-btn">수정</button>
+                    <div class="intention-actions">
+                        <button id="editIntention" class="small-btn">수정</button>
+                        <button id="resetBg" class="small-btn">배경 초기화</button>
+                    </div>
                 </div>
                 <div id="intentionInputArea">
                     <textarea id="intentionInput" placeholder="이 기도를 바치는 목적을 작성해주세요... (예: 가족의 건강, 평화, 감사의 기도 등)"></textarea>
-                    <button id="saveIntention">목적 설정</button>
+                    <div class="input-actions">
+                        <button id="saveIntention">목적 설정</button>
+                        <label for="bgUpload" class="file-label">
+                            <span id="uploadText">배경 사진 업로드</span>
+                            <input type="file" id="bgUpload" accept="image/*" class="hidden">
+                        </label>
+                    </div>
                 </div>
             </div>
             <div id="intentionBackground" class="intention-bg"></div>
