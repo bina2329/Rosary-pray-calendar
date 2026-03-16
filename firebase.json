@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase-debug.log",
+      ".git",
+      ".idx",
+      ".vscode"
+    ]
+  }
+}
