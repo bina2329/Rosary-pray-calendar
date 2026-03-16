@@ -1,6 +1,3 @@
-// NOTE: Firebase SDK must be included in index.html for this to work.
-// Since we are in a simple static setup, we'll use the CDN version in index.html first.
-
 document.addEventListener('DOMContentLoaded', () => {
     // UI Elements
     const daysGrid = document.getElementById('daysGrid');
@@ -26,8 +23,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const userProfile = document.getElementById('userProfile');
     const userNameDisplay = document.getElementById('userName');
 
+    // Intention UI
+    const intentionInputArea = document.getElementById('intentionInputArea');
+    const intentionDisplay = document.getElementById('intentionDisplay');
+    const currentIntentionText = document.getElementById('currentIntention');
+    const intentionInput = document.getElementById('intentionInput');
+    const saveIntentionBtn = document.getElementById('saveIntention');
+    const editIntentionBtn = document.getElementById('editIntention');
+    const intentionBackground = document.getElementById('intentionBackground');
+
     // Mysteries Rotation
     const mysteries = ['환희의 신비', '빛의 신비', '고통의 신비', '영광의 신비'];
+
+    // Background Images Mapping
+    const bgImages = {
+        '가족': 'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80',
+        '평화': 'https://images.unsplash.com/photo-1499209974431-9dac3adaf471?auto=format&fit=crop&w=800&q=80',
+        '감사': 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&w=800&q=80',
+        '건강': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
+        'default': 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=800&q=80'
+    };
 
     // State
     let completedDays = JSON.parse(localStorage.getItem('completedDays')) || [];
@@ -35,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let startDate = localStorage.getItem('startDate') || "";
     let prayerDuration = parseInt(localStorage.getItem('prayerDuration')) || 9;
     let currentView = localStorage.getItem('currentView') || 'list';
+    let prayerIntention = localStorage.getItem('prayerIntention') || "";
     let currentUser = null;
 
     // Initialize UI
@@ -42,12 +58,53 @@ document.addEventListener('DOMContentLoaded', () => {
     startDateInput.value = startDate;
     prayerDurationInput.value = prayerDuration;
     
+    updateIntentionUI();
     updateView();
     updateAlarmStatus();
 
+    // Intention Events
+    saveIntentionBtn.addEventListener('click', () => {
+        prayerIntention = intentionInput.value.trim();
+        if (prayerIntention) {
+            localStorage.setItem('prayerIntention', prayerIntention);
+            updateIntentionUI();
+            syncWithCloud();
+        } else {
+            alert("기도 목적을 입력해주세요.");
+        }
+    });
+
+    editIntentionBtn.addEventListener('click', () => {
+        intentionInputArea.classList.remove('hidden');
+        intentionDisplay.classList.add('hidden');
+        intentionInput.value = prayerIntention;
+    });
+
+    function updateIntentionUI() {
+        if (prayerIntention) {
+            currentIntentionText.innerText = prayerIntention;
+            intentionDisplay.classList.remove('hidden');
+            intentionInputArea.classList.add('hidden');
+            updateIntentionBackground();
+        } else {
+            intentionDisplay.classList.add('hidden');
+            intentionInputArea.classList.remove('hidden');
+            intentionBackground.style.backgroundImage = `url('${bgImages.default}')`;
+        }
+    }
+
+    function updateIntentionBackground() {
+        let selectedBg = bgImages.default;
+        for (const [keyword, url] of Object.entries(bgImages)) {
+            if (prayerIntention.includes(keyword)) {
+                selectedBg = url;
+                break;
+            }
+        }
+        intentionBackground.style.backgroundImage = `url('${selectedBg}')`;
+    }
+
     // Mock Firebase Auth (Since we can't fully configure Firebase without keys)
-    // In a real app, you'd use firebase.auth() and firebase.firestore()
-    
     loginBtn.addEventListener('click', () => {
         alert("구글 로그인 기능은 Firebase 설정(API Key 등)이 필요합니다.\n현재는 데모 모드로 전환됩니다.");
         loginAsDemo();
@@ -59,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginBtn.classList.remove('hidden');
         loadLocalData();
         updateView();
+        updateIntentionUI();
     });
 
     function loginAsDemo() {
@@ -66,21 +124,20 @@ document.addEventListener('DOMContentLoaded', () => {
         userNameDisplay.innerText = currentUser.displayName;
         userProfile.classList.remove('hidden');
         loginBtn.classList.add('hidden');
-        // In real app: fetch from Firestore
         syncWithCloud();
     }
 
     function syncWithCloud() {
         if (!currentUser) return;
-        // Mocking cloud sync
         console.log("Syncing with cloud for user:", currentUser.uid);
-        saveToLocalStorage(); // Keep local in sync
+        saveToLocalStorage(); 
     }
 
     function loadLocalData() {
         completedDays = JSON.parse(localStorage.getItem('completedDays')) || [];
         startDate = localStorage.getItem('startDate') || "";
         prayerDuration = parseInt(localStorage.getItem('prayerDuration')) || 9;
+        prayerIntention = localStorage.getItem('prayerIntention') || "";
         
         startDateInput.value = startDate;
         prayerDurationInput.value = prayerDuration;
@@ -92,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('prayerDuration', prayerDuration);
         localStorage.setItem('currentView', currentView);
         localStorage.setItem('alarmTime', alarmTime);
+        localStorage.setItem('prayerIntention', prayerIntention);
     }
 
     function updateView() {
@@ -122,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dayCard.className = 'day-card';
             
             let isOverdue = false;
+            let isFuture = false;
             let dateStr = "날짜 미설정";
             if (start) {
                 const currentDayDate = new Date(start);
@@ -132,6 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (currentDayDate < today && !completedDays.includes(i)) {
                     isOverdue = true;
+                } else if (currentDayDate > today) {
+                    isFuture = true;
                 }
             }
             
@@ -150,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <p class="day-mystery">${mystery}</p>
                 <div>
-                    <input type="checkbox" id="day${i}" ${completedDays.includes(i) ? 'checked' : ''}>
+                    <input type="checkbox" id="day${i}" ${completedDays.includes(i) ? 'checked' : ''} ${isFuture && !completedDays.includes(i) ? 'disabled' : ''}>
                     <label for="day${i}">기도 완료</label>
                 </div>
             `;
@@ -158,12 +219,21 @@ document.addEventListener('DOMContentLoaded', () => {
             dayCard.addEventListener('click', (e) => {
                 if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
                     const checkbox = dayCard.querySelector('input');
+                    if (checkbox.disabled) {
+                        alert("미래의 기도는 미리 완료할 수 없습니다.");
+                        return;
+                    }
                     checkbox.checked = !checkbox.checked;
                     toggleDay(i, checkbox.checked);
                 }
             });
 
             dayCard.querySelector('input').addEventListener('change', (e) => {
+                if (e.target.checked && isFuture) {
+                    alert("미래의 기도는 미리 완료할 수 없습니다.");
+                    e.target.checked = false;
+                    return;
+                }
                 toggleDay(i, e.target.checked);
             });
 
@@ -212,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const isCompleted = completedDays.includes(prayerDayNum);
                     const isOverdue = currentD < today && !isCompleted;
+                    const isFuture = currentD > today;
                     
                     if (isCompleted) {
                         dayElem.classList.add('completed');
@@ -228,8 +299,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                     
                     dayElem.addEventListener('click', () => {
-                        const isCompleted = completedDays.includes(prayerDayNum);
-                        toggleDay(prayerDayNum, !isCompleted);
+                        const isCompletedNow = completedDays.includes(prayerDayNum);
+                        if (!isCompletedNow && isFuture) {
+                            alert("미래의 기도는 미리 완료할 수 없습니다.");
+                            return;
+                        }
+                        toggleDay(prayerDayNum, !isCompletedNow);
                     });
                 } else {
                     dayElem.innerHTML = `<span class="date-num">${d}</span>`;
@@ -244,6 +319,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleDay(day, isCompleted) {
         if (isCompleted) {
+            // Safety check for future dates
+            if (startDate) {
+                const start = new Date(startDate);
+                const targetDate = new Date(start);
+                targetDate.setDate(start.getDate() + (day - 1));
+                targetDate.setHours(0, 0, 0, 0);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (targetDate > today) {
+                    alert("미래의 기도는 미리 완료할 수 없습니다.");
+                    return;
+                }
+            }
             if (!completedDays.includes(day)) completedDays.push(day);
         } else {
             completedDays = completedDays.filter(d => d !== day);
@@ -329,11 +417,13 @@ document.addEventListener('DOMContentLoaded', () => {
             completedDays = [];
             startDate = "";
             prayerDuration = 9;
+            prayerIntention = "";
             saveToLocalStorage();
             syncWithCloud();
             startDateInput.value = "";
             prayerDurationInput.value = 9;
             updateView();
+            updateIntentionUI();
         }
     });
 
