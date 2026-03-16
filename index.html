@@ -9,45 +9,27 @@
 <body>
     <div class="container">
         <div class="auth-section">
-            <div class="lang-switcher">
-                <button id="langKo" class="lang-btn active">KO</button>
-                <button id="langEn" class="lang-btn">EN</button>
-            </div>
             <div id="userProfile" class="hidden">
-                <span id="userName"></span><span id="userSuffix">님</span>
+                <span id="userName"></span>님
                 <button id="logoutBtn" class="small-btn">로그아웃</button>
             </div>
             <button id="loginBtn" class="small-btn">구글 로그인</button>
         </div>
         <h1>묵주기도달력</h1>
         
-        <section class="prayer-intention" id="intentionSection">
-            <h2 id="intentionTitleText">기도 목적</h2>
-            <div class="intention-container">
-                <div id="intentionDisplay" class="hidden">
-                    <p id="currentIntention"></p>
-                    <p id="prayerSummary" class="prayer-summary"></p>
-                    <div class="intention-actions">
-                        <button id="editIntention" class="small-btn">수정</button>
-                        <button id="resetBg" class="small-btn">배경 초기화</button>
-                    </div>
-                </div>
-                <div id="intentionInputArea">
-                    <textarea id="intentionInput" placeholder="이 기도를 바치는 목적을 작성해주세요... (예: 가족의 건강, 평화, 감사의 기도 등)"></textarea>
-                    <div class="input-actions">
-                        <button id="saveIntention">목적 설정</button>
-                        <label for="bgUpload" class="file-label">
-                            <span id="uploadText">배경 사진 업로드</span>
-                            <input type="file" id="bgUpload" accept="image/*" class="hidden">
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div id="intentionBackground" class="intention-bg"></div>
-        </section>
-        
         <section class="settings">
             <h2>기본 설정</h2>
+            <div class="setting-group">
+                <h3>알람 설정</h3>
+                <div class="alarm-control">
+                    <input type="time" id="alarmTime">
+                    <button id="setAlarm">알람 설정</button>
+                    <button id="clearAlarm" class="small-btn">알람 해제</button>
+                    <button id="testNotification">알림 테스트</button>
+                </div>
+                <p id="alarmStatus">알람이 설정되지 않았습니다.</p>
+            </div>
+            <hr>
             <div class="setting-group">
                 <h3>기도 기간 및 시작 날짜</h3>
                 <div class="duration-control">
@@ -58,17 +40,6 @@
                     <input type="date" id="startDate">
                     <button id="setSettings">설정 저장</button>
                 </div>
-            </div>
-            <hr>
-            <div class="setting-group">
-                <h3>알람 설정</h3>
-                <div class="alarm-control">
-                    <input type="time" id="alarmTime">
-                    <button id="setAlarm">알람 설정</button>
-                    <button id="clearAlarm" class="small-btn">알람 해제</button>
-                    <button id="testNotification">알림 테스트</button>
-                </div>
-                <p id="alarmStatus">알람이 설정되지 않았습니다.</p>
             </div>
         </section>
 
